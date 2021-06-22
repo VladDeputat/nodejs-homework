@@ -15,18 +15,15 @@ const schemaCreateContact = Joi.object({
 });
 
 const schemaUpdateContact = Joi.object({
-  name: Joi.string().alphanum().min(2).max(30).required(),
-  email: Joi.string()
-    .email({
-      minDomainSegments: 2,
-      tlds: { allow: ["com", "net"] },
-    })
-    .required(),
+  name: Joi.string().alphanum().min(2).max(30),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: { allow: ["com", "net"] },
+  }),
   phone: Joi.string()
     .length(10)
-    .pattern(/^[0-9]+$/)
-    .required(),
-});
+    .pattern(/^[0-9]+$/),
+}).min(1);
 
 const validate = (schema, body, next) => {
   const { error } = schema.validate(body);

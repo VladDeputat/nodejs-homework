@@ -1,8 +1,11 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const contactsRouter = require("./routes/api/contacts");
+require("dotenv").config();
+
+const contactsRouter = require("./api/contacts");
 
 const app = express();
 
@@ -30,5 +33,25 @@ app.use((err, req, res, _) => {
     message,
   });
 });
+
+const PORT = process.env.PORT || 3000;
+const DB_HOST = process.env.DB_HOST;
+
+mongoose
+  .connect(DB_HOST, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+  .then(() =>
+    app.listen(PORT || 3000, () =>
+      console.log("Database connection successful")
+    )
+  )
+  .catch((error) => {
+    console.log(`Error: ${error.message}`);
+    process.exit(1);
+  });
 
 module.exports = app;

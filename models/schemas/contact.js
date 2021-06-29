@@ -1,4 +1,4 @@
-const { Schema } = require("mongoose");
+const { Schema, SchemaTypes } = require("mongoose");
 
 const contactsSchema = Schema({
   name: {
@@ -21,6 +21,10 @@ const contactsSchema = Schema({
     type: String,
     enum: ["true", "false"],
     default: "false",
+  },
+  owner: {
+    type: SchemaTypes.ObjectId,
+    ref: "user",
   },
 });
 

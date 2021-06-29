@@ -4,8 +4,8 @@ const getContacts = (query) => {
   return Contact.find(query);
 };
 
-const getContact = (id) => {
-  return Contact.findById(id);
+const getContact = (query) => {
+  return Contact.findOne(query);
 };
 
 const addContact = (body) => {

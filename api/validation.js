@@ -25,6 +25,16 @@ const schemaUpdateContact = Joi.object({
     .pattern(/^[0-9]+$/),
 }).min(1);
 
+const schemaRegister = Joi.object({
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net"] },
+    })
+    .required(),
+  password: Joi.string().min(6).max(30).required(),
+});
+
 const validate = (schema, body, next) => {
   const { error } = schema.validate(body);
   if (error) {
@@ -44,4 +54,12 @@ module.exports.validateCreateContact = (req, res, next) => {
 
 module.exports.validateUpdateContact = (req, res, next) => {
   return validate(schemaUpdateContact, req.body, next);
+};
+
+module.exports.validateRegister = (req, res, next) => {
+  return validate(schemaRegister, req.body, next);
+};
+
+module.exports.validateUpdateUserSubscription = (req, res, next) => {
+  return validate(schemaUpdateUserSubscription, req.body, next);
 };

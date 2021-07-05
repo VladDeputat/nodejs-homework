@@ -1,6 +1,9 @@
 const { user: service } = require("../services");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const path = require("path");
+const fs = require("fs").promises;
+const jimp = require("jimp");
 
 const signup = async (req, res, next) => {
   const { email, password } = req.body;
@@ -118,7 +121,6 @@ const updateUserSubscription = async (req, res, next) => {
         user._id,
         subscription
       );
-
       if (!result) {
         return res.json({
           code: 404,
@@ -142,4 +144,46 @@ const updateUserSubscription = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, logout, curUser, updateUserSubscription };
+const updateUserAvatar = async (req, res, next) => {
+  const { user } = req;
+  console.log(user);
+  const uploadDir = path.join(process.cwd(), "public/avatars");
+  const { path: tempName, originalname } = req.file;
+  const fileName = path.join(
+    uploadDir,
+    user._id + Date.now() + "." + originalname.split(".")[1]
+  );
+  try {
+    if (req.file) {
+      const img = await jimp.read(tempName);
+      await img
+        .autocrop()
+        .cover(
+          250,
+          250,
+          jimp.HORIZONTAL_ALIGN_CENTER || jimp.VERTICAL_ALIGN_MIDDLE
+        )
+        .writeAsync(req.file.path);
+    }
+    await fs.rename(tempName, fileName);
+    await service.updateUserAvatar(user._id, fileName);
+    res.json({
+      code: 200,
+      status: "success",
+      message: "user avatar updated",
+      data: { avatarURL: { fileName } },
+    });
+  } catch (error) {
+    await fs.unlink(tempName);
+    next(error);
+  }
+};
+
+module.exports = {
+  signup,
+  login,
+  logout,
+  curUser,
+  updateUserSubscription,
+  updateUserAvatar,
+};

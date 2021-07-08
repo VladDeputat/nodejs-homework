@@ -4,19 +4,29 @@ require("dotenv").config();
 const path = require("path");
 const fs = require("fs").promises;
 const jimp = require("jimp");
+const { v4: uuid } = require("uuid");
+const sendEmail = require("../helpers/sendEmail");
 
 const signup = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const result = await service.getUser({ email });
     if (result) {
-      return res.json({
+      return res.status(409).json({
         code: 409,
         status: "conflict",
         message: "Email in use",
       });
     }
-    const newUser = await service.addUser({ email, password });
+    const verificationToken = uuid();
+
+    await sendEmail(email, verificationToken);
+
+    const newUser = await service.addUser({
+      email,
+      password,
+      verificationToken,
+    });
     const { TOKEN_KEY } = process.env;
     const payload = {
       id: newUser._id,
@@ -45,6 +55,13 @@ const login = async (req, res, next) => {
         code: 401,
         status: "Unauthorized",
         message: "Email or password is wrong",
+      });
+    }
+    if (!user.verify) {
+      return res.status(401).json({
+        code: 401,
+        status: "Unauthorized",
+        message: "Email is not verified",
       });
     }
     const payload = {
@@ -110,7 +127,7 @@ const updateUserSubscription = async (req, res, next) => {
   const { user } = req;
   const { subscription } = req.body;
   if (!subscription) {
-    return res.json({
+    return res.status(400).json({
       code: 400,
       status: "error",
       message: "missing field subscription",
@@ -122,7 +139,7 @@ const updateUserSubscription = async (req, res, next) => {
         subscription
       );
       if (!result) {
-        return res.json({
+        return res.status(404).json({
           code: 404,
           status: "error",
           message: "Not found",
@@ -146,7 +163,6 @@ const updateUserSubscription = async (req, res, next) => {
 
 const updateUserAvatar = async (req, res, next) => {
   const { user } = req;
-  console.log(user);
   const uploadDir = path.join(process.cwd(), "public/avatars");
   const { path: tempName, originalname } = req.file;
   const fileName = path.join(
@@ -179,6 +195,67 @@ const updateUserAvatar = async (req, res, next) => {
   }
 };
 
+const verifyUser = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  try {
+    result = await service.verifyUser({ verificationToken });
+    if (result) {
+      return res.json({
+        code: 200,
+        status: "success",
+        message: "Verification successful",
+      });
+    } else {
+      return res.status(404).json({
+        code: 404,
+        status: "error",
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyUserByEmail = async (req, res, next) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({
+      code: 400,
+      status: "error",
+      message: "missing required field email",
+    });
+  }
+  try {
+    const user = await service.getUser({ email });
+    if (!user) {
+      return res.status(404).json({
+        code: 404,
+        status: "error",
+        message: "User not found",
+      });
+    }
+    if (user.verify) {
+      return res.status(400).json({
+        code: 400,
+        status: "error",
+        message: "Verification has already been passed",
+      });
+    } else {
+      const result = await sendEmail(email, user.verificationToken);
+      if (result) {
+        return res.json({
+          code: 200,
+          status: "success",
+          message: "Verification email sent",
+        });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -186,4 +263,6 @@ module.exports = {
   curUser,
   updateUserSubscription,
   updateUserAvatar,
+  verifyUser,
+  verifyUserByEmail,
 };

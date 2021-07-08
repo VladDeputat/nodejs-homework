@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const contactCtrl = require("../controllers/contactCtrl");
 
-const useAuth = require("./useAuth");
+const useAuth = require("../helpers/useAuth");
 
 const {
   validateCreateContact,
   validateUpdateContact,
-} = require("./validation");
+} = require("../helpers/validation");
 
 router.get("/", useAuth, contactCtrl.getContacts);
 

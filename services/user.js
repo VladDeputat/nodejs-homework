@@ -8,8 +8,8 @@ const getUserById = (id) => {
   return User.findById(id);
 };
 
-const addUser = ({ email, password }) => {
-  const newUser = new User({ email });
+const addUser = ({ email, password, verificationToken }) => {
+  const newUser = new User({ email, verificationToken });
   newUser.setPassword(password);
   return newUser.save();
 };
@@ -26,6 +26,13 @@ const updateUserAvatar = async (id, avatarURL) => {
   return await User.findByIdAndUpdate(id, { avatarURL });
 };
 
+const verifyUser = async (token) => {
+  return await User.findOneAndUpdate(token, {
+    verify: true,
+    verificationToken: null,
+  });
+};
+
 module.exports = {
   getUser,
   getUserById,
@@ -33,4 +40,5 @@ module.exports = {
   updateUserToken,
   updateUserSubscription,
   updateUserAvatar,
+  verifyUser,
 };

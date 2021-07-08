@@ -28,6 +28,14 @@ const usersSchema = Schema({
       return gravatar.url(this.email, { s: 250 }, true);
     },
   },
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, "Verify token is required"],
+  },
 });
 
 usersSchema.methods.setPassword = function (password) {

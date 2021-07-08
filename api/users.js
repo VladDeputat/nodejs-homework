@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("./imgUploader");
+const upload = require("../helpers/imgUploader");
 
 const userCtrl = require("../controllers/userCtrl");
 
-const useAuth = require("./useAuth");
+const useAuth = require("../helpers/useAuth");
 
-const { validateRegister } = require("./validation");
+const { validateRegister } = require("../helpers/validation");
 
 router.post("/signup", validateRegister, userCtrl.signup);
 
@@ -24,5 +24,9 @@ router.patch(
   upload.single("avatar"),
   userCtrl.updateUserAvatar
 );
+
+router.get("/verify/:verificationToken", userCtrl.verifyUser);
+
+router.post("/verify", userCtrl.verifyUserByEmail);
 
 module.exports = router;

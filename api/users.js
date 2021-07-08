@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../helpers/imgUploader");
-
 const userCtrl = require("../controllers/userCtrl");
-
 const useAuth = require("../helpers/useAuth");
-
 const { validateRegister } = require("../helpers/validation");
+
 
 router.post("/signup", validateRegister, userCtrl.signup);
 

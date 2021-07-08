@@ -26,6 +26,7 @@ const updateUserAvatar = async (id, avatarURL) => {
   return await User.findByIdAndUpdate(id, { avatarURL });
 };
 
+
 const verifyUser = async (token) => {
   return await User.findOneAndUpdate(token, {
     verify: true,
